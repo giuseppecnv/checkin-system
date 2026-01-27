@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/dashboard.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png">
+    <script src="/static/script/dashboardScript.js"></script>
+</head>
+<body> 
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Dashboard Check-In</h1>
+
+            <input type="date" id="datePicker" value="{{ current_date }}">
+            
+            <a href="/download/excel?date_str={{ current_date }}" class="export-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export to Excel
+            </a>
+        </div>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>VDASH</th>
+                    <th>FULL NAME</th>
+                    <th>CHECK-IN</th>
+                    <th>CHECK-OUT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if checkins %}
+                    {% for checkin in checkins %}
+                    <tr>
+                        <td id="td-vdash">{{ checkin[0] }}</td>
+                        <td>{{ checkin[3] }}</td>
+                        <td id="td-time">{{ checkin[1] }}</td>
+                        <td id="td-time">{{ checkin[2] }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" id="td_no_checkins">
+                            No check-ins available for this date.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        
+        <div class="table-footer">
+            Total Rows: {{ present }}
+        </div>
+    </div>
+</body>
+</html>

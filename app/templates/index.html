@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/svg" href="/static/checkinicon.svg">
+    <script src="/static/script/indexScript.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <title>Check-In</title>
+</head>
+<body class="ibm-plex-sans">
+    <div class="main-container">
+        <div class="header-container">
+            <div class="greeting-wrap">
+                <span class="greeting"></span> 
+                <span class="vdash-span"></span>
+            </div>
+            <div class="calendar-container">
+                <span id="day-week"></span>
+                <div class="date-month-wrapper">
+                    <span class="date-month"></span> 
+                    <span class="month"></span>
+                </div>
+            </div>
+        </div>
+        <form action="/checkin" method="POST" class="card-container">
+            <input type="hidden" name="vdash" class="vdash-input">
+            <div class="card-header">
+                <div class="session-wrap">
+                    <span class="label">SESSION</span>
+                    <div class="status">
+                        <span class="dot">•</span>
+                        <span class="label-active"></span>
+                    </div>
+                </div>
+                <div class="clock-wrap">
+                    <span class="label">CURRENT TIME</span>
+                    <span class="current-time"></span>
+                </div>
+            </div>
+            <div class="shift-box">
+                <span class="shift-label"></span>
+                <span class="shift-time text-focus-in"></span>
+            </div>
+            <button type="submit"></button>
+        </form>
+    </div>
+    <div class="show-banner">
+        
+    </div>
+</body>
+</html>

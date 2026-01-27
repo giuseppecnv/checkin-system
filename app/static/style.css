@@ -1,0 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap');
+
+.ibm-plex-sans{
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #f7f9fa;
+}
+
+.main-container {
+    min-width: 500px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    gap: 50px;
+}
+
+.main-container .header-container {
+    height: auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-container .greeting-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.greeting-wrap .greeting {
+    font-size: 20px;
+}
+
+.header-container .vdash-span {
+    color: hsla(246, 80%, 60%, 1);
+    font-size: 24px;
+}
+
+.header-container .calendar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    height: auto;
+    gap: 4px;
+}
+
+.calendar-container #day-week {
+    opacity: 50%;
+    letter-spacing: 2px;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.calendar-container .date-month-wrapper {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4px;
+}
+
+
+.date-month-wrapper .month, .date-month {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+
+.main-container .card-container {
+    height: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+
+.card-container .card-header {
+    width: 100%;
+    min-height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+.card-header .session-wrap, .card-header .clock-wrap {
+    flex: 1;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.session-wrap { align-items: flex-start; }
+.clock-wrap { 
+    align-items: flex-end; 
+    display: flex;
+    gap: 5px;
+    
+}
+
+.session-wrap .label, .clock-wrap .label {
+    font-size: 12px;
+    opacity: 50%;
+}
+
+.session-wrap .status .dot {
+    font-size: 20px;
+}
+
+.session-wrap .status .dot.active {
+    color: #20b620;
+    animation: blink 1.2s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+
+
+
+.card-container .shift-box {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+    padding: 25px;
+    background: #e1e7ef29;
+    border-radius: 12px;
+}
+
+.shift-box .shift-label {
+    opacity: 50%;
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+.shift-box .shift-time {
+    font-size: 35px;
+    letter-spacing: 2px;
+}
+
+.card-container button {
+    background: hsla(246, 80%, 60%, 1);
+    padding: 18px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: .3s;
+    font-weight: 600;
+}
+
+.card-container button:hover {
+    opacity: 50%;
+}
+
+
+/*BANNER*/
+
+.show-banner {
+    padding: 30px;
+    width: auto;
+    height: auto;
+    background: white;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 0px 20px;
+    border-radius: 12px;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-size: 25px;
+    font-weight: 600;
+
+}
+
+.show-banner.show {
+    display: flex;
+    animation: slideDown 0.5s ease-out forwards;
+}
+
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/*ANIMATION*/
+.text-focus-in {
+	animation: text-focus-in 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+}
+
+@keyframes text-focus-in {
+  0% {
+    filter: blur(12px);
+    opacity: 0;
+  }
+  100% {
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
