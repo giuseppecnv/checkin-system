@@ -21,9 +21,9 @@ from datetime import date, timedelta
 
 app = FastAPI()
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-static_dir = os.path.join(current_dir, "static")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+base_path = os.path.dirname(os.path.abspath(__file__))
+static_path = os.path.join(base_path, "static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 init_db()
