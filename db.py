@@ -22,20 +22,27 @@ def add_checkin(vdash: str):
     cur = conn.cursor()
     
     now = datetime.now()
-    checkin_time = now.time().isoformat(timespec='seconds')
+    checkin_time = now.strftime("%H:%M:%S")
     checkin_date = now.date().isoformat()
 
-    cur.execute(
-        """
-        INSERT INTO checkins (vdash, checkin_time, checkin_date)
-        VALUES (%s, %s, %s)
-        """,
-        (vdash.upper(), checkin_time, checkin_date)
-    )
+    # Trasformiamo l'input in minuscolo per combaciare con la tabella 'users'
+    vdash_lower = vdash.lower() 
 
-    conn.commit()
-    cur.close()
-    conn.close()
+    try:
+        cur.execute(
+            """
+            INSERT INTO checkins (vdash, checkin_time, checkin_date)
+            VALUES (%s, %s, %s)
+            """,
+            (vdash_lower, checkin_time, checkin_date)
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"Errore durante l'insert: {e}")
+        conn.rollback()
+    finally:
+        cur.close()
+        conn.close()
 
 def add_checkout(vdash: str):
     conn = get_connection()
