@@ -21,24 +21,21 @@ def add_checkin(vdash: str):
     conn = get_connection()
     cur = conn.cursor()
     
+    # Forza il minuscolo per combaciare con la tabella 'users'
+    vdash_clean = vdash.lower().strip()
+    
     now = datetime.now()
     checkin_time = now.strftime("%H:%M:%S")
     checkin_date = now.date().isoformat()
 
-    # Trasformiamo l'input in minuscolo per combaciare con la tabella 'users'
-    vdash_lower = vdash.lower() 
-
     try:
         cur.execute(
-            """
-            INSERT INTO checkins (vdash, checkin_time, checkin_date)
-            VALUES (%s, %s, %s)
-            """,
-            (vdash_lower, checkin_time, checkin_date)
+            "INSERT INTO checkins (vdash, checkin_time, checkin_date) VALUES (%s, %s, %s)",
+            (vdash_clean, checkin_time, checkin_date)
         )
         conn.commit()
     except Exception as e:
-        print(f"Errore durante l'insert: {e}")
+        print(f"Errore add_checkin: {e}")
         conn.rollback()
     finally:
         cur.close()
@@ -80,20 +77,30 @@ def get_all_vdash():
     return [row[0].upper() for row in rows]
 
 def is_already_checked_in(vdash: str) -> bool:
+    """Verifica se l'utente ha già effettuato il check-in oggi (case-insensitive)."""
     conn = get_connection()
     cur = conn.cursor()
-
+    
+    # Prendiamo la data di oggi in formato stringa ISO (YYYY-MM-DD)
     today = date.today().isoformat()
+    
+    # Puliamo l'input dell'utente
+    vdash_clean = vdash.lower().strip()
 
-    cur.execute(
-        "SELECT id FROM checkins WHERE UPPER(vdash) = UPPER(%s) AND checkin_date = %s;",
-        (vdash, today)
-    )
-
-    exists = cur.fetchone() is not None
-    cur.close()
-    conn.close()
-    return exists
+    try:
+        # Usiamo LOWER() nella query SQL per essere sicuri al 100% della corrispondenza
+        cur.execute(
+            "SELECT id FROM checkins WHERE LOWER(vdash) = %s AND checkin_date = %s;",
+            (vdash_clean, today)
+        )
+        row = cur.fetchone()
+        return row is not None
+    except Exception as e:
+        print(f"Errore is_already_checked_in: {e}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
 
 def is_already_checked_out(vdash: str) -> bool:
     conn = get_connection()
