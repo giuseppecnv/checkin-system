@@ -21,7 +21,7 @@ import os
 app = FastAPI()
 
 # Configurazione per Vercel: assicurati che la cartella static esista in app/static
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 # Nota: init_db() rimosso perché lo schema è già pronto su Supabase
