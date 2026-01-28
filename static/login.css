@@ -151,27 +151,22 @@ body {
 
 .card-container button:hover { opacity: 50%; }
 
-@media screen and (max-width: 600px) {
-    body {
-        display: block;
-        height: auto;
-        background: white;
-    }
 
-    /* 2. Trasforma la card in una pagina intera */
-    .card-container {
-        width: 100vw !important;
-        min-height: 100vh !important;
-        max-width: none !important;
+@media screen and (max-width: 600px) {
+
+    body .card-container {
+        width: 100% !important;
+        height: 100vh !important;
+        max-width: none !important; /* Questo elimina il blocco dei 500px che si vede in foto */
         border-radius: 0 !important;
         box-shadow: none !important;
-        padding: 40px 20px !important;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 60px;
-        align-items: center;
+        padding: 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 40px !important;
     }
+  
     .card-body, .input-wrapper, .token-field, .card-body button {
         width: 100% !important;
     }
