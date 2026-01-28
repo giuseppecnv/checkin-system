@@ -4,7 +4,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.db import (
-    init_db, 
     add_checkin,
     add_checkout, 
     get_all_vdash, 
@@ -17,12 +16,15 @@ from app.db import (
     get_checkout_time
 )
 from datetime import date, timedelta
+import os
 
 app = FastAPI()
+
+# Configurazione per Vercel: assicurati che la cartella static esista in app/static
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-init_db()
+# Nota: init_db() rimosso perché lo schema è già pronto su Supabase
 
 @app.get("/")
 def home(request: Request):
@@ -43,23 +45,21 @@ def login_page(request: Request):
 def process_checkin(request: Request, vdash: str = Form(...)):
     if not is_already_checked_in(vdash):
         add_checkin(vdash) 
-        export_date_to_excel(date.today().isoformat())
+        # export_date_to_excel(date.today().isoformat()) # Opzionale: genera excel ogni volta
         return RedirectResponse("/", status_code=303)
     elif not is_already_checked_out(vdash):
         add_checkout(vdash)
-        export_date_to_excel(date.today().isoformat())
+        # export_date_to_excel(date.today().isoformat())
         return RedirectResponse("/", status_code=303)   
     
     return RedirectResponse("/", status_code=303)
 
 @app.get("/dashboard")
 def dashboard(request: Request, date_str: str = None):
-
     if date_str: target_date = date_str
     else: target_date = date.today().isoformat()
     
     checkins = get_checkins_by_date(target_date)
-    
     all_users = get_all_vdash()
     
     return templates.TemplateResponse(
@@ -75,19 +75,22 @@ def dashboard(request: Request, date_str: str = None):
 
 @app.get("/download/excel")
 def download_excel(date_str: str = None):
-
     if date_str: target_date = date_str
     else: target_date = date.today().isoformat()
     
+    # Genera il file nel percorso temporaneo di Vercel
     export_date_to_excel(target_date)
     
-    xlsx_path = Path("data") / "checkins.xlsx"
+    # Su Vercel usiamo /tmp/ perché è l'unica cartella con permessi di scrittura
+    xlsx_path = "/tmp/checkins.xlsx"
     
-    return FileResponse(
-        str(xlsx_path),
-        filename=f"checkins_{target_date}.xlsx",
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    if os.path.exists(xlsx_path):
+        return FileResponse(
+            path=xlsx_path,
+            filename=f"checkins_{target_date}.xlsx",
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    return {"error": "File non trovato"}
 
 
 @app.get("/api/check-status")
