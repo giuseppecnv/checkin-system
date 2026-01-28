@@ -1,17 +1,24 @@
-import sqlite3
-from pathlib import Path
+import os
+import psycopg2
+from psycopg2.extras import DictCursor
 from datetime import datetime, date
+from pathlib import Path
 from openpyxl import Workbook, load_workbook
 
+# Configurazione connessione (La stringa verrà presa da Vercel)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-DB_PATH = Path("data") / "checkins_hcl.db"
-XLSX_PATH = Path("data") / "checkins.xlsx"
+# Se la stringa di Supabase inizia con postgres://, SQLAlchemy/Psycopg2 a volte
+# preferiscono postgresql://. Questo piccolo fix previene errori:
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-def init_db():
-    pass
+def get_connection():
+    """Crea una nuova connessione a Supabase."""
+    return psycopg2.connect(DATABASE_URL)
 
 def add_checkin(vdash: str):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cur = conn.cursor()
     
     now = datetime.now()
@@ -21,16 +28,17 @@ def add_checkin(vdash: str):
     cur.execute(
         """
         INSERT INTO checkins (vdash, checkin_time, checkin_date)
-        VALUES (?, ?, ?)         
+        VALUES (%s, %s, %s)
         """,
-        (vdash, checkin_time, checkin_date) 
+        (vdash.upper(), checkin_time, checkin_date)
     )
 
     conn.commit()
+    cur.close()
     conn.close()
 
 def add_checkout(vdash: str):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cur = conn.cursor()
 
     now = datetime.now()
@@ -40,75 +48,69 @@ def add_checkout(vdash: str):
     cur.execute(
         """
         UPDATE checkins
-        SET checkout_time = ?
-        WHERE vdash = ?
-        AND checkin_date = ?
+        SET checkout_time = %s
+        WHERE UPPER(vdash) = UPPER(%s)
+        AND checkin_date = %s
         AND checkout_time IS NULL
         """,
         (checkout_time, vdash, today)
     )
 
     conn.commit()
+    cur.close()
     conn.close()
-
 
 def get_all_vdash():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute(
-        """
-        SELECT vdash FROM users;
-        """
-    )
-
+    cur.execute("SELECT vdash FROM users;")
     rows = cur.fetchall()
+    
+    cur.close()
     conn.close()
-    vdash_list = [row[0].upper() for row in rows]
-    return vdash_list
-
+    
+    return [row[0].upper() for row in rows]
 
 def is_already_checked_in(vdash: str) -> bool:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cur = conn.cursor()
 
     today = date.today().isoformat()
 
     cur.execute(
-        """
-        SELECT * FROM checkins WHERE vdash = ? 
-        AND checkin_date = ?;
-        """,
+        "SELECT id FROM checkins WHERE UPPER(vdash) = UPPER(%s) AND checkin_date = %s;",
         (vdash, today)
     )
 
-    rows = cur.fetchall()
+    exists = cur.fetchone() is not None
+    cur.close()
     conn.close()
-
-    return len(rows) > 0
+    return exists
 
 def is_already_checked_out(vdash: str) -> bool:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cur = conn.cursor()
 
     today = date.today().isoformat()
 
     cur.execute(
         """
-        SELECT * FROM checkins WHERE vdash = ?
-        AND checkin_date = ?
+        SELECT id FROM checkins 
+        WHERE UPPER(vdash) = UPPER(%s) 
+        AND checkin_date = %s 
         AND checkout_time IS NOT NULL;
         """,
         (vdash, today)
     )
 
-    rows = cur.fetchall()
+    exists = cur.fetchone() is not None
+    cur.close()
     conn.close()
-
-    return len(rows) > 0
+    return exists
 
 def get_checkins_by_date(target_date: str):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
@@ -121,63 +123,69 @@ def get_checkins_by_date(target_date: str):
             u.last_name
         FROM checkins c
         JOIN users u ON UPPER(c.vdash) = UPPER(u.vdash)
-        WHERE c.checkin_date = ?
+        WHERE c.checkin_date = %s
         ORDER BY c.checkin_time;
     """, (target_date,))
 
     rows = cur.fetchall()
+    cur.close()
     conn.close()
 
     formatted_rows = []
-
     for row in rows:
         vdash = row[0].upper()
-
-        checkin_time = (row[1] or "")[:5]
-        checkout_time = (row[2] or "")[:5]
-
+        # Gestione del tempo (trasformazione in stringa HH:MM)
+        checkin_t = str(row[1])[:5] if row[1] else ""
+        checkout_t = str(row[2])[:5] if row[2] else ""
+        
         first = row[3].upper() if row[3] else ""
         middle = row[4].upper() if row[4] else ""
         last = row[5].upper() if row[5] else ""
-
         full_name = f"{first} {middle} {last}".strip()
 
-        formatted_rows.append(
-            (vdash, checkin_time, checkout_time, full_name)
-        )
+        formatted_rows.append((vdash, checkin_t, checkout_t, full_name))
 
     return formatted_rows
 
-
-def get_checkout_time(vdash: str):
-    conn = sqlite3.connect(DB_PATH)
+def get_user_by_token(token: str):
+    conn = get_connection()
     cur = conn.cursor()
 
+    cur.execute(
+        "SELECT vdash, first_name, middle_name, last_name FROM users WHERE token = %s",
+        (token,)
+    )
+    
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return row
+
+def get_checkin_time(vdash: str):
+    conn = get_connection()
+    cur = conn.cursor()
     today = date.today().isoformat()
 
     cur.execute(
-        """
-        SELECT checkout_time FROM checkins
-        WHERE vdash = ? AND checkin_date = ?
-        """,
+        "SELECT checkin_time FROM checkins WHERE UPPER(vdash) = UPPER(%s) AND checkin_date = %s",
         (vdash, today)
     )
 
     row = cur.fetchone()
+    cur.close()
     conn.close()
+    
+    return str(row[0])[:5] if row and row[0] else None
 
-    if row and row[0]:
-        return row[0][:5]
-    return None
-
+# Nota: Su Vercel, questo file Excel verrà creato in una cartella temporanea
 def export_date_to_excel(target_date: str):
     rows = get_checkins_by_date(target_date)
+    if not rows: return
 
-    if not rows:
-        return
-
-    if XLSX_PATH.exists():
-        wb = load_workbook(XLSX_PATH)
+    xlsx_path = "/tmp/checkins.xlsx" # Percorso temporaneo per Vercel
+    
+    if os.path.exists(xlsx_path):
+        wb = load_workbook(xlsx_path)
     else:
         wb = Workbook()
         wb.remove(wb.active)
@@ -191,45 +199,4 @@ def export_date_to_excel(target_date: str):
     for row in rows:
         ws.append([row[0], row[3], row[1], row[2]])
 
-    wb.save(XLSX_PATH)
-
-
-def get_user_by_token(token: str):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-            SELECT vdash, first_name, middle_name, last_name
-            FROM users
-            WHERE token = ?
-        """, 
-        (token,)
-    )
-    
-    row = cur.fetchone()
-    conn.close()
-    
-    return row
-
-
-def get_checkin_time(vdash: str):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-
-    today = date.today().isoformat()
-
-    cur.execute(
-        """
-        SELECT checkin_time FROM checkins 
-        WHERE vdash = ? AND checkin_date = ?
-        """,
-        (vdash, today)
-    )
-
-    row = cur.fetchone()
-    conn.close()
-
-    if row:
-        return row[0][:5]
-    return None
+    wb.save(xlsx_path)
