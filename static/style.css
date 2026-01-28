@@ -25,7 +25,8 @@ body {
 }
 
 .main-container {
-    min-width: 500px;
+    width: 100%;
+    max-width: 500px;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -163,6 +164,7 @@ body {
     opacity: 50%;
     font-size: 16px;
     letter-spacing: 2px;
+    text-align: center;
 }
 
 .shift-box .shift-time {
@@ -227,7 +229,7 @@ body {
 
 /*ANIMATION*/
 .text-focus-in {
-	animation: text-focus-in 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+	animation: text-focus-in 0.2s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
 }
 
 @keyframes text-focus-in {
@@ -239,4 +241,48 @@ body {
     filter: blur(0px);
     opacity: 1;
   }
+}
+
+
+@media screen and (max-width: 600px) {
+    .main-container {
+        width: 100%;
+        padding: 0 10px;
+        gap: 30px;
+    }
+    
+    .card-container {
+        width: 100%;
+        padding: 20px;
+        gap: 25px;
+    }
+    
+    .header-container .greeting-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 0;
+    }
+
+    .greeting-wrap .greeting {
+        font-size: 18px;
+    }
+
+    .greeting-wrap .vdash-span {
+        font-size: 28px;
+    }
+
+    .date-month-wrapper #day-week {
+        font-size: 14px;
+    }
+    
+    .date-month-wrapper .month, .date-month {
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 15px;
+    }
 }
