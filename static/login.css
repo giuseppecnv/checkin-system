@@ -152,20 +152,31 @@ body {
 .card-container button:hover { opacity: 50%; }
 
 @media screen and (max-width: 600px) {
-
-    .card-container {
-        width: 100% !important;
-        height: 100vh !important;
-        max-width: none !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        gap: 40px;
+    body {
+        display: block;
+        height: auto;
+        background: white;
     }
 
-    .btnAuthenticate {
-        width: 100%;
-        padding: 15px;
+    /* 2. Trasforma la card in una pagina intera */
+    .card-container {
+        width: 100vw !important;
+        min-height: 100vh !important;
+        max-width: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 40px 20px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 60px;
+        align-items: center;
+    }
+    .card-body, .input-wrapper, .token-field, .card-body button {
+        width: 100% !important;
+    }
+
+    .svg-title-wrap > span {
+        font-size: 26px;
     }
 }
