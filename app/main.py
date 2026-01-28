@@ -5,7 +5,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.db import (
-    init_db, 
     add_checkin,
     add_checkout, 
     get_all_vdash, 
@@ -25,8 +24,6 @@ base_path = os.path.dirname(os.path.abspath(__file__))
 static_path = os.path.join(base_path, "static")
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates = Jinja2Templates(directory="app/templates")
-
-init_db()
 
 @app.get("/")
 def home(request: Request):
@@ -79,19 +76,22 @@ def dashboard(request: Request, date_str: str = None):
 
 @app.get("/download/excel")
 def download_excel(date_str: str = None):
-
     if date_str: target_date = date_str
     else: target_date = date.today().isoformat()
     
+    # Genera il file
     export_date_to_excel(target_date)
     
-    xlsx_path = Path("data") / "checkins.xlsx"
+    # Percorso temporaneo compatibile con Vercel
+    xlsx_path = "/tmp/checkins.xlsx"
     
-    return FileResponse(
-        str(xlsx_path),
-        filename=f"checkins_{target_date}.xlsx",
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    if os.path.exists(xlsx_path):
+        return FileResponse(
+            path=xlsx_path,
+            filename=f"checkins_{target_date}.xlsx",
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    return {"error": "File not found"}
 
 
 @app.get("/api/check-status")
