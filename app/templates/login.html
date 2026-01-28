@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/login.css">
-    <script src="/static/script/loginScript.js"></script>
-    <link rel="icon" type="image/svg" href="/static/authorized.svg">
+    <link rel="stylesheet" href="{{ url_for('static', path='/login.css') }}">
+    <script src="{{ url_for('static', path='/script/loginScript.js') }}"></script>
+    <link rel="icon" type="image/svg" href="{{ url_for('static', path='/authorized.svg') }}">
     <title>Login</title>
 </head>
 <body class="ibm-plex-sans">
