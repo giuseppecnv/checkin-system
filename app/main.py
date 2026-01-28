@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
@@ -19,7 +20,10 @@ from app.db import (
 from datetime import date, timedelta
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+static_dir = os.path.join(current_dir, "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 init_db()
