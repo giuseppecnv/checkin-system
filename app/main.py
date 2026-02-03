@@ -20,12 +20,13 @@ from datetime import date, timedelta
 
 app = FastAPI()
 
-# Gestione percorsi statici robusta per Vercel
+# Percorsi da root progetto (static/ e templates/ alla root)
 base_path = Path(__file__).resolve().parent
-static_path = base_path / "static"
+project_root = base_path.parent
+static_path = project_root / "static"
 app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 def home(request: Request):
