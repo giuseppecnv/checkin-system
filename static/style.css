@@ -275,6 +275,11 @@ body {
         font-size: 16px;
     }
 
+    .show-banner {
+        padding: 15px;
+        font-size: 16px;
+    }
+    
     button {
         width: 100%;
         padding: 15px;
