@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from app.db import (
     add_checkin,
@@ -16,7 +16,7 @@ from app.db import (
     get_checkin_time,
     get_checkout_time
 )
-from datetime import date, timedelta
+from datetime import date
 
 app = FastAPI()
 
@@ -45,16 +45,16 @@ def login_page(request: Request):
 
 @app.post("/checkin")
 def process_checkin(request: Request, vdash: str = Form(...)):
-    # Pulizia input alla fonte
-    vdash_clean = vdash.lower().strip()
-    
+    vdash_clean = vdash.strip()
+    today = date.today().isoformat()
+
     if not is_already_checked_in(vdash_clean):
-        add_checkin(vdash_clean) 
-        export_date_to_excel(date.today().isoformat())
+        add_checkin(vdash_clean)
+        export_date_to_excel(today)
     elif not is_already_checked_out(vdash_clean):
         add_checkout(vdash_clean)
-        export_date_to_excel(date.today().isoformat())
-    
+        export_date_to_excel(today)
+
     return RedirectResponse("/", status_code=303)
 
 @app.get("/dashboard")
@@ -88,16 +88,38 @@ def download_excel(date_str: str = None):
         )
     return {"error": "File not found"}
 
+@app.get("/api/check-status")
+def check_status(vdash: str):
+    checked_in = is_already_checked_in(vdash)
+    checked_out = is_already_checked_out(vdash)
+    return {
+        "has_checked_in": checked_in,
+        "has_checked_out": checked_out,
+    }
+
 @app.get("/api/token-status")
 def token_status(token: str):
     user = get_user_by_token(token)
     if not user: return {"valid": False}
 
-    vdash = user[0].lower().strip()
-    full_name = " ".join(filter(None, [str(i).strip() if i else "" for i in user[1:4]]))
+    vdash = user[0]
+    first_name = user[1]
+    middle_name = user[2]
+    last_name = user[3]
+
+    full_name = " ".join(filter(None, [
+        first_name.strip() if first_name else "",
+        middle_name.strip() if middle_name else "",
+        last_name.strip() if last_name else ""
+    ]))
 
     checked_in = is_already_checked_in(vdash)
     checked_out = is_already_checked_out(vdash)
+
+    checkin_time = None
+    checkout_time = None
+    if checked_in: checkin_time = get_checkin_time(vdash)
+    if checked_out: checkout_time = get_checkout_time(vdash)
 
     return {
         "valid": True,
@@ -105,6 +127,6 @@ def token_status(token: str):
         "full_name": full_name,
         "has_checked_in": checked_in,
         "has_checked_out": checked_out,
-        "checkin_time": get_checkin_time(vdash) if checked_in else None,
-        "checkout_time": get_checkout_time(vdash) if checked_out else None
+        "checkin_time": checkin_time,
+        "checkout_time": checkout_time
     }

@@ -1,39 +1,32 @@
-window.addEventListener('DOMContentLoaded', function() {
-
+window.addEventListener('DOMContentLoaded', () => {
     const tokenInput = document.querySelector('.token-field');
-
     const toggles = document.querySelectorAll('.toggle-password');
+    const loginForm = document.querySelector('.login-form');
 
-    toggles.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // 1. Cambia il tipo di input
+    if (!tokenInput || !loginForm) {
+        return;
+    }
+
+    toggles.forEach((btn) => {
+        btn.addEventListener('click', () => {
             const isPassword = tokenInput.type === 'password';
             tokenInput.type = isPassword ? 'text' : 'password';
-
-            // 2. Cambia la visibilità delle icone switchando la classe 'is-active'
-            toggles.forEach(svg => svg.classList.toggle('is-active'));
+            toggles.forEach((svg) => svg.classList.toggle('is-active'));
         });
     });
 
-
-    const loginForm = document.querySelector('.login-form');
-    loginForm.addEventListener('submit', function(event){
-
-        event.preventDefault(); //form won't send
+    loginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
 
         const token = tokenInput.value.trim();
-
         if (!token) {
             alert('Please enter your personal token!');
             return;
         }
-    
-        const url = `/api/token-status?token=${token}`;
-    
-        fetch(url)
-            .then(response => response.json()) //convert the answer in json
-            .then(data => {
-                console.log(data);
+
+        fetch(`/api/token-status?token=${token}`)
+            .then((response) => response.json())
+            .then((data) => {
                 if (data.valid) {
                     data.token = token;
                     data.saved_date = new Date().toISOString().split('T')[0];
@@ -43,10 +36,9 @@ window.addEventListener('DOMContentLoaded', function() {
                     alert('Bad token! Try again.');
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Error fetching token status:', error);
                 alert('An error occurred. Please try again later.');
             });
     });
-                
 });
